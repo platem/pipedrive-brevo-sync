@@ -3,7 +3,8 @@ import { sql } from 'drizzle-orm';
 
 export const user = sqliteTable('user', {
 	id: text('id').primaryKey(),
-	username: text('username').notNull().default('fenbro')
+	username: text('username').notNull().default('fenbro'),
+	passwordHash: text('password_hash').notNull()
 });
 
 export const session = sqliteTable(

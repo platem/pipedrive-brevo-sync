@@ -37,12 +37,12 @@ Mandatory if fileUrl and fileBody is not defined. JSON content to be imported. M
 
 ```json
 {
-  "email": "",
-  "attributes": {
-    "FIRSTNAME": "",
-    "LASTNAME": "",
-    "EXT_ID": ""
-  }
+	"email": "",
+	"attributes": {
+		"FIRSTNAME": "",
+		"LASTNAME": "",
+		"EXT_ID": ""
+	}
 }
 ```
 
@@ -89,7 +89,7 @@ To facilitate the choice to update the existing contacts
 
 ```json
 {
-  "processId": 78
+	"processId": 78
 }
 ```
 
@@ -113,7 +113,7 @@ Name of the list
 
 ```json
 {
-  "id": 5
+	"id": 5
 }
 ```
 
@@ -122,6 +122,7 @@ Name of the list
 Delete a contact from a list
 
 ### Path parameters
+
 listId
 long
 Required
@@ -181,14 +182,9 @@ Required if ‘all’ is false, ‘ids’ and ‘emails’ are empty. EXT_ID att
 
 ```json
 {
-  "contacts": {
-    "failure": [
-      "charlie.brown@example.com"
-    ],
-    "success": [
-      "alice.jones@example.com",
-      "bob.smith@example.com"
-    ]
-  }
+	"contacts": {
+		"failure": ["charlie.brown@example.com"],
+		"success": ["alice.jones@example.com", "bob.smith@example.com"]
+	}
 }
 ```

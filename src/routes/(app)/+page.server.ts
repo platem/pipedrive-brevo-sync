@@ -1,7 +1,9 @@
+import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async () => {
-	// Auth checks will be added here
-	// Filters are provided by +layout.server.ts
+export const load: PageServerLoad = async ({ locals }) => {
+	if (!locals.user) {
+		return redirect(302, '/login');
+	}
 	return {};
 };
