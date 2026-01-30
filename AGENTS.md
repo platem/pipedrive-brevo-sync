@@ -17,12 +17,6 @@ A SvelteKit application that syncs Pipedrive deal filters with Brevo contact lis
 - Drizzle ORM with SQLite
 - Playwright for E2E testing
 
-**Styling Guidelines:**
-
-- Dark mode only
-- Mobile first
-- Ensure 44px touch targets
-
 ## Build Commands
 
 | Command           | Description                                        |
