@@ -154,7 +154,7 @@ User clicks button → goto('/[mode]') → /new or /overwrite loads with filters
 ## Implementation Order
 
 1. **Pipedrive Service**
-   - **Files**: `src/lib/server/services/pipedrive.ts`
+   - **Files**: `src/lib/server/services/pipedrive.service.ts`
    - **Scope**: Create service to fetch filters from Pipedrive API (using `PIPEDRIVE_API_TOKEN`). Define Pipedrive API types.
    - **Deliverable**: `getFilters()` returns list of filters from Pipedrive.
 
