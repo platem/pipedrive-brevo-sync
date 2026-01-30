@@ -1,16 +1,14 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { goto } from '$app/navigation';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
+	import { enhance } from '$app/forms';
+	import { ArrowLeft } from '@lucide/svelte';
 
 	let { children } = $props();
 
-	const isRootPage = $derived($page.url.pathname === '/');
-
-	async function handleLogout() {
-		// TODO: Implement logout action
-		console.log('Logout clicked');
-	}
+	const pathname = $derived(String(page.url.pathname));
+	const isModeRoute = $derived(pathname === '/new' || pathname === '/overwrite');
 
 	async function handleBack() {
 		// eslint-disable-next-line svelte/no-navigation-without-resolve
@@ -22,33 +20,27 @@
 	<!-- Minimal Header -->
 	<header class="sticky top-0 z-50 border-b bg-background">
 		<div class="container mx-auto flex h-16 items-center justify-between px-4">
-			<!-- Left: Logo or Back Button -->
-			<div class="flex items-center gap-4">
-				{#if isRootPage}
-					<img src="/logo.svg" alt="Fenbro Logo" class="h-8 w-auto" />
-				{:else}
-					// eslint-disable-next-line svelte/no-navigation-without-resolve
+			<!-- Left: Back Button (only on mode routes) -->
+			<div class="flex w-24 items-center">
+				{#if isModeRoute}
 					<Button variant="ghost" size="sm" onclick={() => handleBack()}>
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							width="20"
-							height="20"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							stroke-width="2"
-							stroke-linecap="round"
-							stroke-linejoin="round"
-						>
-							<path d="m15 18-6-6 6-6" />
-						</svg>
+						<ArrowLeft class="h-5 w-5" />
 						<span class="ml-1">Wstecz</span>
 					</Button>
 				{/if}
 			</div>
 
+			<!-- Center: Logo (always visible) -->
+			<div class="flex flex-1 justify-center">
+				<img src="/logo.svg" alt="Fenbro Logo" class="h-8 w-auto" />
+			</div>
+
 			<!-- Right: Logout Button -->
-			<Button variant="outline" size="sm" onclick={handleLogout}>Wyloguj</Button>
+			<div class="flex w-24 justify-end">
+				<form method="POST" action="/logout" use:enhance>
+					<Button type="submit" variant="outline" size="sm">Wyloguj</Button>
+				</form>
+			</div>
 		</div>
 	</header>
 
