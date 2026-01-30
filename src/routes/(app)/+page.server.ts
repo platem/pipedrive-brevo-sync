@@ -1,4 +1,4 @@
-import { redirect } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import { getFilters } from '$lib/server/services/pipedrive.service';
 import { db } from '$lib/server/db';
 import { filters } from '$lib/server/db/schema';
@@ -59,8 +59,8 @@ export const load: PageServerLoad = async () => {
 		return {
 			filters: syncedFilters as FilterView[]
 		};
-	} catch (error) {
-		console.error('Failed to fetch filters:', error);
-		redirect(307, '/error?message=fetch-failed');
+	} catch (err) {
+		console.error('Failed to fetch filters:', err);
+		error(500, 'Nie udało się pobrać filtrów z Pipedrive');
 	}
 };
