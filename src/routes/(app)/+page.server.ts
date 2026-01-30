@@ -2,7 +2,7 @@ import { redirect } from '@sveltejs/kit';
 import { getFilters } from '$lib/server/services/pipedrive.service';
 import { db } from '$lib/server/db';
 import { filters } from '$lib/server/db/schema';
-import { isNull, sql } from 'drizzle-orm';
+import { isNull, notInArray, sql } from 'drizzle-orm';
 import type { PageServerLoad } from './$types';
 
 interface FilterView {
@@ -39,10 +39,12 @@ export const load: PageServerLoad = async () => {
 
 		// Mark filters that no longer exist in Pipedrive as deleted
 		const existingIds = pipedriveFilters.map((f) => f.id);
-		await db
-			.update(filters)
-			.set({ deletedAt: sql`(unixepoch())` })
-			.where(sql`${filters.id} NOT IN (${existingIds.join(',')})`);
+		if (existingIds.length > 0) {
+			await db
+				.update(filters)
+				.set({ deletedAt: sql`(unixepoch())` })
+				.where(notInArray(filters.id, existingIds));
+		}
 
 		// Return all non-deleted filters from local DB
 		const syncedFilters = await db
