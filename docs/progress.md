@@ -1,0 +1,1 @@
+- [x] **Pipedrive Service**: Created `$lib/server/services/pipedrive.service.ts` with `getFilters()` that fetches deal-type filters using `PIPEDRIVE_API_TOKEN` header. Defined `PipedriveFilter` interface matching API response.
