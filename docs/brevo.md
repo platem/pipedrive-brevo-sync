@@ -116,3 +116,79 @@ Name of the list
   "id": 5
 }
 ```
+
+## POST https://api.brevo.com/v3/contacts/lists/:listId/contacts/remove
+
+Delete a contact from a list
+
+### Path parameters
+listId
+long
+Required
+Id of the list
+
+### Request
+
+Request
+Emails adresses OR IDs OR EXT_ID attributes of the contacts OR ‘all’ true
+
+ContactsRemoveContactFromListRequest0
+object
+Required
+
+Hide 1 properties
+emails
+list of strings
+Optional
+Required if ‘all’ is false and ‘ids’, ‘extIds’ are empty. Emails to remove from a list. You can pass a maximum of 150 emails for removal in one request.
+
+OR
+ContactsRemoveContactFromListRequest1
+object
+Required
+
+Hide 1 properties
+ids
+list of longs
+Optional
+Required if ‘all’ is false and ‘emails’, ‘extIds’ are empty. IDs to remove from a list. You can pass a maximum of 150 IDs for removal in one request.
+
+OR
+ContactsRemoveContactFromListRequest2
+object
+Required
+
+Hide 1 properties
+all
+boolean
+Optional
+Required if ‘emails’, ‘extIds’ and ‘ids’ are empty. Remove all existing contacts from a list. A process will be created in this scenario. You can fetch the process details to know about the progress
+
+OR
+ContactsRemoveContactFromListRequest3
+object
+Required
+
+Hide 1 properties
+extIds
+list of strings
+Optional
+Required if ‘all’ is false, ‘ids’ and ‘emails’ are empty. EXT_ID attributes to remove from a list. You can pass a maximum of 150 EXT_ID attributes for removal in one request.
+
+### Response
+
+[Example when all is passed as true]
+
+```json
+{
+  "contacts": {
+    "failure": [
+      "charlie.brown@example.com"
+    ],
+    "success": [
+      "alice.jones@example.com",
+      "bob.smith@example.com"
+    ]
+  }
+}
+```
