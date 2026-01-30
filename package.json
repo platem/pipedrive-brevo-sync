@@ -21,7 +21,7 @@
 		"@eslint/compat": "^2.0.1",
 		"@eslint/js": "^9.39.2",
 		"@internationalized/date": "^3.10.0",
-		"@lucide/svelte": "^0.563.1",
+		"@lucide/svelte": "^0.561.0",
 		"@oslojs/crypto": "^1.0.1",
 		"@oslojs/encoding": "^1.1.0",
 		"@sveltejs/adapter-auto": "^7.0.0",
@@ -52,6 +52,7 @@
 		"vite": "^7.3.1"
 	},
 	"dependencies": {
-		"better-sqlite3": "^12.6.2"
+		"better-sqlite3": "^12.6.2",
+		"fenbro-brevo-sync": "."
 	}
 }

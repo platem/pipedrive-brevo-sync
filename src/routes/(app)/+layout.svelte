@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button/index.js';
+	import { Spinner } from '$lib/components/ui/spinner/index.js';
 	import { goto } from '$app/navigation';
-	import { page } from '$app/state';
+	import { page, navigating } from '$app/state';
 	import { enhance } from '$app/forms';
 	import { ArrowLeft } from '@lucide/svelte';
 
@@ -9,6 +10,7 @@
 
 	const pathname = $derived(String(page.url.pathname));
 	const isModeRoute = $derived(pathname === '/new' || pathname === '/overwrite');
+	const isNavigating = $derived(navigating.to !== null);
 
 	async function handleBack() {
 		// eslint-disable-next-line svelte/no-navigation-without-resolve
@@ -23,9 +25,13 @@
 			<!-- Left: Back Button (only on mode routes) -->
 			<div class="flex w-24 items-center">
 				{#if isModeRoute}
-					<Button variant="ghost" size="sm" onclick={() => handleBack()}>
-						<ArrowLeft class="h-5 w-5" />
-						<span class="ml-1">Wstecz</span>
+					<Button variant="ghost" size="sm" onclick={() => handleBack()} disabled={isNavigating}>
+						{#if isNavigating}
+							<Spinner class="mr-1 h-4 w-4" />
+						{:else}
+							<ArrowLeft class="mr-1 h-4 w-4" />
+						{/if}
+						<span>Wstecz</span>
 					</Button>
 				{/if}
 			</div>
