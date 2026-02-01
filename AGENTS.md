@@ -15,7 +15,7 @@ A SvelteKit application that syncs Pipedrive deal filters with Brevo contact lis
 - Tailwind 4
 - Shadcn-svelte components (Shadcn/ui port for Svelte)
 - Drizzle ORM with SQLite
-- Playwright for E2E testing
+- Vitest (unit) + Playwright (E2E) for testing
 
 ## Build Commands
 
@@ -37,11 +37,19 @@ A SvelteKit application that syncs Pipedrive deal filters with Brevo contact lis
 
 ## Test Commands
 
-| Command                             | Description          |
-| ----------------------------------- | -------------------- |
-| `bun run test`                      | Run all E2E tests    |
-| `bun run test:e2e e2e/demo.test.ts` | Run single test file |
-| `bun run test:e2e --reporter=list`  | Use list reporter    |
+| Command                             | Description                |
+| ----------------------------------- | -------------------------- |
+| `bun run test`                      | Run all tests (unit + e2e) |
+| `bun run test:unit`                 | Run Vitest unit tests      |
+| `bun run test:e2e`                  | Run Playwright E2E tests   |
+| `bun run test:e2e e2e/demo.test.ts` | Run single test file       |
+| `bun run test:e2e --reporter=list`  | Use list reporter          |
+
+**Testing Guidelines:**
+
+- Refer to `docs/test-plan.md` for comprehensive testing strategy
+- **When writing unit tests:** Read `docs/unit-tests-guide.md` for Vitest best practices
+- **When writing E2E tests:** Read `docs/e2e-tests-guide.md` for Playwright testing patterns
 
 ## Interaction Guidelines
 

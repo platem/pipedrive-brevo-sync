@@ -1,0 +1,18 @@
+[
+	{
+		"email": "john.doe@bigcorp.com",
+		"attributes": {
+			"FIRSTNAME": "John",
+			"LASTNAME": "Doe",
+			"EXT_ID": "67890"
+		}
+	},
+	{
+		"email": "jane@smallbusiness.com",
+		"attributes": {
+			"FIRSTNAME": "Jane",
+			"LASTNAME": "Smith",
+			"EXT_ID": "67891"
+		}
+	}
+]
