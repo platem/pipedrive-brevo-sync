@@ -9,6 +9,12 @@
 	import CheckCircle2Icon from '@lucide/svelte/icons/check-circle-2';
 	import { SvelteSet } from 'svelte/reactivity';
 	import { enhance } from '$app/forms';
+	import { goto } from '$app/navigation';
+
+	function handleNavigate(path: string) {
+		// eslint-disable-next-line svelte/no-navigation-without-resolve
+		goto(path);
+	}
 
 	interface Props {
 		data: PageData;
@@ -83,7 +89,7 @@
 				{#if eligibleFilters.length === 0}
 					<div class="py-8 text-center">
 						<p class="mb-4 text-muted-foreground">Brak dostępnych filtrów</p>
-						<Button variant="outline" href="/">Wróć do panelu</Button>
+						<Button variant="outline" onclick={() => handleNavigate('/')}>Wróć do panelu</Button>
 					</div>
 				{:else}
 					<!-- Scrollable filter list -->
