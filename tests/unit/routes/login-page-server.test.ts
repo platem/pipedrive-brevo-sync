@@ -73,7 +73,7 @@ describe('login/+page.server.ts', () => {
 		});
 
 		it('returns 400 for invalid password format', async () => {
-			const formData = createMockFormData({ username: 'fenbro', password: '12345' });
+			const formData = createMockFormData({ username: 'testuser', password: '12345' });
 			const event = { request: { formData: async () => formData } } as any;
 			const result = await actions.login(event);
 			expect(result).toMatchObject({ status: 400, data: { message: 'Invalid password' } });

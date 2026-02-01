@@ -27,6 +27,7 @@ jobs:
           echo "PIPEDRIVE_BASE_URL=https://dummy.pipedrive.com/" >> .env
           echo "BREVO_FOLDER_ID=1" >> .env
           echo "TEST_USER_PASSWORD=dummy" >> .env
+          echo "TEST_USER_USERNAME=dummy" >> .env
 
       - name: Type check
         run: bun run check

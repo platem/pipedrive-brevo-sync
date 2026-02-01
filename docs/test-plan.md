@@ -123,7 +123,7 @@ E2E tests require a dedicated test user in the database to simulate real authent
 
 - All cleanup queries filter by `username = 'e2e-test-user'`
 - Queries will silently do nothing if user doesn't exist
-- Production user (`fenbro`) is NEVER touched
+- Production user is NEVER touched
 
 ### 7.3 Implementation Files
 
