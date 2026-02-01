@@ -93,25 +93,67 @@ Since the project currently lacks the testing libraries mentioned in the documen
 bun add -D vitest @playwright/test
 ```
 
-## 7. Testing Schedule
+## 7. E2E Test User Setup
+
+E2E tests require a dedicated test user in the database to simulate real authentication flows.
+
+### 7.1 Test User Credentials
+
+| Field    | Value           |
+| :------- | :-------------- |
+| Username | `e2e-test-user` |
+| Password | `TestPass123!`  |
+
+### 7.2 Setup & Teardown Strategy
+
+**Global Setup (`e2e/global-setup.ts`):**
+
+- Runs once before all E2E tests
+- Creates `e2e-test-user` if not already exists
+- Uses Argon2id hashing with production parameters
+- Only creates user, does not create sessions
+
+**Cleanup After Tests:**
+
+- Delete all sessions for `e2e-test-user` after each test file
+- Delete `e2e-test-user` account after all tests complete
+- Uses explicit username filter to prevent accidental prod data deletion
+
+**Safety Guarantees:**
+
+- All cleanup queries filter by `username = 'e2e-test-user'`
+- Queries will silently do nothing if user doesn't exist
+- Production user (`fenbro`) is NEVER touched
+
+### 7.3 Implementation Files
+
+| File                     | Purpose                               |
+| :----------------------- | :------------------------------------ |
+| `e2e/global-setup.ts`    | Seeds test user once before E2E tests |
+| `e2e/global-teardown.ts` | Cleans up test user after all tests   |
+| `e2e/auth.spec.ts`       | AUTH-02, AUTH-03, AUTH-04 E2E tests   |
+
+## 8. Testing Schedule
 
 1.  **Immediate**: Install missing testing infrastructure (Vitest, Playwright).
-2.  **Phase 1**: Implement Unit Tests for `brevo.service.ts` and `pipedrive.service.ts`.
-3.  **Phase 2**: Implement E2E tests for the "Happy Path" (Login + Sync New).
-4.  **Phase 3**: Edge cases and error handling tests.
+2.  **Phase 1**: Implement Unit Tests for auth routes (AUTH-01, AUTH-02, AUTH-03).
+3.  **Phase 2**: Implement E2E tests for authentication (AUTH-02, AUTH-03, AUTH-04).
+4.  **Phase 3**: Implement Unit Tests for `brevo.service.ts` and `pipedrive.service.ts`.
+5.  **Phase 4**: Implement E2E tests for Sync Workflow (SYNC-01, SYNC-02).
+6.  **Phase 5**: Edge cases and error handling tests.
 
-## 8. Acceptance Criteria
+## 9. Acceptance Criteria
 
 - **Code Coverage**: Aim for >80% coverage on Service files.
 - **Pass Rate**: 100% of Critical and High priority tests must pass before merging.
 - **Performance**: Sync jobs for small datasets (<500 contacts) should complete/fail gracefully within timeout limits.
 
-## 9. Roles & Responsibilities
+## 10. Roles & Responsibilities
 
 - **QA Engineer / SDET**: Setup framework, write E2E tests, review Unit tests.
 - **Developer**: Write Unit tests for new features, ensure tests pass locally before pushing.
 
-## 10. Bug Reporting
+## 11. Bug Reporting
 
 - **Tool**: GitHub Issues.
 - **Format**:
@@ -123,14 +165,4 @@ bun add -D vitest @playwright/test
 
 ---
 
-## Progress Log
-
-### Completed Steps
-
-| Step | Description                                                                                                                                 | Status |
-| :--- | :------------------------------------------------------------------------------------------------------------------------------------------ | :----- |
-| 1    | Configured Vitest in `vite.config.ts` with jsdom environment and test paths                                                                 | Done   |
-| 2    | Created `playwright.config.ts` with Chromium-only setup and auto-start webServer                                                            | Done   |
-| 3    | Added test scripts to `package.json` (`test`, `test:unit`, `test:e2e`) and updated AGENTS.md                                                | Done   |
-| 4    | Created directory structure: `tests/unit/`, `tests/fixtures/`, `e2e/`                                                                       | Done   |
-| 5    | Created 5 mock fixtures: pipedrive-deals.json, pipedrive-persons.json, pipedrive-filters.json, brevo-list-created.json, brevo-contacts.json | Done   |
+_Progress log moved to [test-progress.md](./test-progress.md)_
