@@ -18,7 +18,14 @@
 			<form method="POST" action="?/login" use:enhance class="space-y-4">
 				<div class="space-y-2">
 					<label for="username" class="text-sm font-medium">Username</label>
-					<Input id="username" name="username" type="text" required autocomplete="username" />
+					<Input
+						id="username"
+						name="username"
+						type="text"
+						required
+						autocomplete="username"
+						data-testid="username-input"
+					/>
 				</div>
 
 				<div class="space-y-2">
@@ -29,14 +36,15 @@
 						type="password"
 						required
 						autocomplete="current-password"
+						data-testid="password-input"
 					/>
 				</div>
 
 				{#if form?.message}
-					<p class="text-sm text-destructive">{form.message}</p>
+					<p class="text-sm text-destructive" data-testid="error-message">{form.message}</p>
 				{/if}
 
-				<Button type="submit" class="w-full">Sign In</Button>
+				<Button type="submit" class="w-full" data-testid="submit-button">Sign In</Button>
 			</form>
 		</Card.Content>
 	</Card.Root>

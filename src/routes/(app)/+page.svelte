@@ -23,6 +23,7 @@
 					variant="outline"
 					size="lg"
 					class="w-full max-w-xs"
+					data-testid="create-new-button"
 					onclick={() => handleNavigate('/new')}
 				>
 					Utwórz nowe
@@ -44,6 +45,7 @@
 					variant="outline"
 					size="lg"
 					class="w-full max-w-xs"
+					data-testid="overwrite-button"
 					onclick={() => handleNavigate('/overwrite')}
 				>
 					Nadpisz istniejące

@@ -17,3 +17,23 @@
 - [x] **Test Execution**: All 12 auth-related unit tests passing (`bun run test:unit`).
 
 - [x] **E2E Test User Setup**: Documented E2E test user strategy in test-plan.md including credentials, global setup/teardown, and safety guarantees.
+
+- [x] **E2E Authentication Tests (AUTH-02, AUTH-03, AUTH-04)**: Created `e2e/auth.spec.ts` with 3 end-to-end tests using Playwright:
+  - AUTH-02: Login with valid credentials redirects to dashboard
+  - AUTH-03: Login with invalid password shows error message
+  - AUTH-04: Logout clears session and redirects to login
+  - Added `data-testid` attributes to login page and logout button for reliable test selectors
+  - All 3 tests passing (`bun run test:e2e`)
+
+- [x] **E2E Dashboard Navigation Tests (DASH-01, DASH-02)**: Created `e2e/dashboard.spec.ts` with 2 tests for mode selection buttons:
+  - DASH-01: Click "Utwórz nowe" button navigates to `/new`
+  - DASH-02: Click "Nadpisz istniejące" button navigates to `/overwrite`
+  - Added `data-testid="create-new-button"` and `data-testid="overwrite-button"` to dashboard buttons
+  - Both tests passing (`bun run test:e2e`)
+
+- [x] **E2E Filter Selection Tests (DASH-03, DASH-04)**: Extended `e2e/dashboard.spec.ts` with 2 checkbox interaction tests:
+  - DASH-03: Navigate to `/new`, select filters 1 and 3, verify button state updates from disabled → enabled, text shows "Utwórz nowe (1)" → "Utwórz nowe (2)"
+  - DASH-04: Navigate to `/overwrite`, select filters 2 and 5, verify button state updates from disabled → enabled, text shows "Nadpisz (1)" → "Nadpisz (2)"
+  - Added `data-testid="filter-checkbox-{id}"` pattern to filter checkboxes
+  - Added `data-testid="sync-button"` to sync submit button
+  - Both tests passing (`bun run test:e2e`)

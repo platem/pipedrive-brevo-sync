@@ -85,6 +85,7 @@
 							<Checkbox
 								name="filterIds"
 								value={String(filter.id)}
+								data-testid={`filter-checkbox-${filter.id}`}
 								checked={selectedFilterIds.has(filter.id)}
 								onCheckedChange={() => toggleFilter(filter.id)}
 								disabled={!!mockActiveJob}
@@ -99,6 +100,7 @@
 		<!-- Sync Action Button -->
 		<Button
 			type="submit"
+			data-testid="sync-button"
 			disabled={isSyncing || !hasSelection || !!mockActiveJob}
 			class="w-full cursor-pointer"
 			size="lg"

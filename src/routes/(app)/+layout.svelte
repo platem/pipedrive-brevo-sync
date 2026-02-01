@@ -44,7 +44,9 @@
 			<!-- Right: Logout Button -->
 			<div class="flex w-24 justify-end">
 				<form method="POST" action="/logout" use:enhance>
-					<Button type="submit" variant="outline" size="sm">Wyloguj</Button>
+					<Button type="submit" variant="outline" size="sm" data-testid="logout-button"
+						>Wyloguj</Button
+					>
 				</form>
 			</div>
 		</div>
