@@ -19,6 +19,15 @@ jobs:
       - name: Install dependencies
         run: bun install
 
+      - name: Create .env for type checking
+        run: |
+          echo "DATABASE_URL=local.db" > .env
+          echo "PIPEDRIVE_API_KEY=dummy" >> .env
+          echo "BREVO_API_KEY=dummy" >> .env
+          echo "PIPEDRIVE_BASE_URL=https://dummy.pipedrive.com/" >> .env
+          echo "BREVO_FOLDER_ID=1" >> .env
+          echo "TEST_USER_PASSWORD=dummy" >> .env
+
       - name: Type check
         run: bun run check
 
