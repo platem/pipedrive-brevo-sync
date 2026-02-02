@@ -45,7 +45,7 @@ jobs:
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
             nvm use 22
-            export PATH="$HOME/.bun/bin:/usr/local/bin:$PATH"
+            export PATH="$HOME/.bun/bin:$NVM_DIR/versions/node/v22.13.0/bin:/usr/local/bin:$PATH"
             cd ~/pipedrive-brevo-sync
             git pull
             bun install
