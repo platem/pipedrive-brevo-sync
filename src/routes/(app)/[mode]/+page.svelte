@@ -17,7 +17,7 @@
 		goto(path);
 	}
 
-	let { params, data, form }: PageProps = $props();
+	let { data, form }: PageProps = $props();
 
 	// Filter data by mode eligibility
 	const eligibleFilters = $derived(
