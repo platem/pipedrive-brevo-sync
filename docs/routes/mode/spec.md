@@ -248,6 +248,7 @@
    - **Files**: `src/routes/(app)/[mode]/+page.svelte`
    - **Scope**:
      - Handle action response in `use:enhance` callback.
+     - Handle errors by displaying error message (red text).
      - Display success message (green text) with `totalSent` count.
      - Display partial failure (amber text) listing `failedFilters`.
      - Clear selection and trigger data refresh on success.
