@@ -1,0 +1,10 @@
+{
+	"code": "internal_error",
+	"message": "An unexpected error occurred",
+	"errors": [
+		{
+			"code": "internal_error",
+			"message": "Internal server error"
+		}
+	]
+}

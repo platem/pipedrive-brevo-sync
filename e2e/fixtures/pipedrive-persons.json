@@ -1,0 +1,97 @@
+{
+	"success": true,
+	"data": [
+		{
+			"id": 67890,
+			"name": "John Doe",
+			"first_name": "John",
+			"last_name": "Doe",
+			"owner_id": 1,
+			"org_id": 11111,
+			"add_time": "2023-06-15T10:00:00.000Z",
+			"update_time": "2024-01-15T10:30:00.000Z",
+			"emails": [
+				{
+					"value": "john.doe@bigcorp.com",
+					"primary": true,
+					"label": "work"
+				},
+				{
+					"value": "john.doe@gmail.com",
+					"primary": false,
+					"label": "personal"
+				}
+			],
+			"phones": [
+				{
+					"value": "+1-555-0100",
+					"primary": true,
+					"label": "mobile"
+				}
+			],
+			"is_deleted": false,
+			"visible_to": 3,
+			"label_ids": [],
+			"picture_id": null,
+			"custom_fields": {},
+			"notes": "Key decision maker",
+			"im": [],
+			"birthday": null,
+			"job_title": "VP of Sales",
+			"postal_address": {
+				"value": "123 Main St",
+				"country": "US",
+				"admin_area_level_1": "CA",
+				"admin_area_level_2": "San Francisco",
+				"locality": "San Francisco",
+				"sublocality": null,
+				"route": "Main St",
+				"street_number": "123",
+				"subpremise": null,
+				"postal_code": "94102"
+			}
+		},
+		{
+			"id": 67891,
+			"name": "Jane Smith",
+			"first_name": "Jane",
+			"last_name": "Smith",
+			"owner_id": 1,
+			"org_id": 11112,
+			"add_time": "2023-08-20T14:00:00.000Z",
+			"update_time": "2024-01-20T08:00:00.000Z",
+			"emails": [
+				{
+					"value": "jane@smallbusiness.com",
+					"primary": true,
+					"label": "work"
+				}
+			],
+			"phones": [],
+			"is_deleted": false,
+			"visible_to": 3,
+			"label_ids": [],
+			"picture_id": null,
+			"custom_fields": {},
+			"notes": "",
+			"im": [],
+			"birthday": null,
+			"job_title": "CEO",
+			"postal_address": {
+				"value": "",
+				"country": "US",
+				"admin_area_level_1": null,
+				"admin_area_level_2": null,
+				"locality": null,
+				"sublocality": null,
+				"route": null,
+				"street_number": null,
+				"subpremise": null,
+				"postal_code": null
+			}
+		}
+	],
+	"additional_data": {
+		"next_cursor": null
+	}
+}

@@ -1,0 +1,8 @@
+{
+	"success": false,
+	"error": "Internal Server Error",
+	"error_info": {
+		"error_code": 500,
+		"error_message": "An unexpected error occurred"
+	}
+}

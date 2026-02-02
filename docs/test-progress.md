@@ -37,3 +37,20 @@
   - Added `data-testid="filter-checkbox-{id}"` pattern to filter checkboxes
   - Added `data-testid="sync-button"` to sync submit button
   - Both tests passing (`bun run test:e2e`)
+
+- [x] **E2E Fixture Files**: Created `e2e/fixtures/` directory with 7 JSON fixture files:
+  - `pipedrive-filters.json` (3 filters: High Value Deals, New Leads This Month, Lost Deals)
+  - `pipedrive-deals.json` (2 deals with person references)
+  - `pipedrive-persons.json` (2 persons matching deals)
+  - `brevo-list-created.json` (list creation response with id: 98765)
+  - `brevo-import.json` (import response with contacts count)
+  - `brevo-clear-list.json` (success response for clearing list)
+  - `pipedrive-error.json` and `brevo-error.json` (500 error responses)
+
+- [x] **E2E Fixture Helper**: Created `e2e/fixtures/helpers.ts` with `readFixture(filename)` for loading JSON fixtures and helper functions `createJsonResponse()` and `createErrorResponse()` for crafting mock API responses.
+
+- [x] **E2E API Mocks**: Created `e2e/api-mocks.ts` with Playwright route handlers:
+  - `mockPipedriveFilters(page)`, `mockPipedriveDeals(page)`, `mockPipedrivePersons(page)`
+  - `mockBrevoCreateList(page)`, `mockBrevoClearList(page, listId)`, `mockBrevoImport(page, listId)`
+  - `mockPipedriveError(page, endpoint)`, `mockBrevoError(page, endpoint)`
+  - `setupAllMocks(page, listId)` helper for enabling all mocks at once
