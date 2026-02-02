@@ -11,7 +11,11 @@ interface FilterView {
 	brevoListId: number | null;
 }
 
-export const load: LayoutServerLoad = async () => {
+export const load: LayoutServerLoad = async ({ locals }) => {
+	if (!locals.user) {
+		return { filters: [] };
+	}
+
 	try {
 		const pipedriveFilters = await getFilters();
 
