@@ -16,7 +16,7 @@ A SvelteKit application that syncs Pipedrive deal filters with Brevo contact lis
 - Shadcn-svelte components (Shadcn/ui port for Svelte)
 - Drizzle ORM with SQLite
 - Vitest (unit) + Playwright (E2E) for testing
-- GitHub Actions for deployment
+- GitHub Actions for deployment to VPS
 
 ## Build Commands
 
