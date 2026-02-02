@@ -1,5 +1,6 @@
 <script lang="ts">
-	import type { PageData } from './$types';
+	import type { PageProps } from './$types';
+	import type { ActionResult } from '@sveltejs/kit';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import * as Card from '$lib/components/ui/card/index.js';
 	import * as Alert from '$lib/components/ui/alert/index.js';
@@ -16,10 +17,7 @@
 		goto(path);
 	}
 
-	interface Props {
-		data: PageData;
-	}
-	let { data }: Props = $props();
+	let { params, data, form }: PageProps = $props();
 
 	// Filter data by mode eligibility
 	const eligibleFilters = $derived(
@@ -51,7 +49,8 @@
 
 	function handleSubmit() {
 		isSyncing = true;
-		return async ({ result }: { result: { type: string } }) => {
+		return async ({ result, update }: { result: ActionResult; update: () => Promise<void> }) => {
+			await update();
 			isSyncing = false;
 			if (result.type === 'success') {
 				selectedFilterIds.clear();
@@ -125,5 +124,20 @@
 			{/if}
 			{buttonText}
 		</Button>
+
+		<!-- Action Feedback -->
+		{#if form?.success}
+			<p class="mt-4 text-center text-sm text-green-600">
+				Zsynchronizowano {form.totalSent} kontaktów
+			</p>
+			{#if form.failedFilters && form.failedFilters.length > 0}
+				<p class="mt-2 text-center text-sm text-amber-600">
+					Niepowodzenie dla filtrów: {form.failedFilters.join(', ')}
+				</p>
+			{/if}
+		{/if}
+		{#if form?.error}
+			<p class="mt-4 text-center text-sm text-red-600">{form.error}</p>
+		{/if}
 	</form>
 </div>
