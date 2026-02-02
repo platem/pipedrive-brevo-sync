@@ -56,7 +56,6 @@ export const load: LayoutServerLoad = async () => {
 			.from(filters)
 			.where(isNull(filters.deletedAt));
 
-		console.log('Synced filters:', syncedFilters);
 		return {
 			filters: syncedFilters as FilterView[]
 		};

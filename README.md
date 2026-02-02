@@ -98,20 +98,20 @@ The application will be available at `http://localhost:5173`
 
 ### Available Commands
 
-| Command               | Description                              |
-| --------------------- | ---------------------------------------- |
-| `bun run dev`         | Start development server                 |
-| `bun run build`       | Build for production                     |
-| `bun run preview`     | Preview production build                 |
-| `bun run check`       | Run TypeScript and Svelte type checks    |
-| `bun run format`      | Format code with Prettier                |
-| `bun run lint`        | Run Prettier and ESLint checks           |
-| `bun run db:push`     | Push schema changes to database          |
-| `bun run db:generate` | Generate Drizzle migrations              |
-| `bun run db:studio`   | Open Drizzle Studio (database GUI)       |
-| `bun run test`        | Run all tests (unit + E2E)               |
-| `bun run test:unit`   | Run Vitest unit tests                    |
-| `bun run test:e2e`    | Run Playwright E2E tests                 |
+| Command               | Description                           |
+| --------------------- | ------------------------------------- |
+| `bun run dev`         | Start development server              |
+| `bun run build`       | Build for production                  |
+| `bun run preview`     | Preview production build              |
+| `bun run check`       | Run TypeScript and Svelte type checks |
+| `bun run format`      | Format code with Prettier             |
+| `bun run lint`        | Run Prettier and ESLint checks        |
+| `bun run db:push`     | Push schema changes to database       |
+| `bun run db:generate` | Generate Drizzle migrations           |
+| `bun run db:studio`   | Open Drizzle Studio (database GUI)    |
+| `bun run test`        | Run all tests (unit + E2E)            |
+| `bun run test:unit`   | Run Vitest unit tests                 |
+| `bun run test:e2e`    | Run Playwright E2E tests              |
 
 ## Testing
 
@@ -133,16 +133,19 @@ bun run build
 ### VPS Deployment with PM2
 
 1. Install PM2 globally:
+
    ```sh
    npm install -g pm2
    ```
 
 2. Start the application:
+
    ```sh
    pm2 start npm --name "pipedrive-brevo-sync" -- run preview
    ```
 
 3. Configure PM2 to restart on reboot:
+
    ```sh
    pm2 startup
    pm2 save
@@ -173,6 +176,7 @@ bun run build
 ## CI/CD
 
 GitHub Actions workflow automatically runs on every push to `main`:
+
 - Dependency installation
 - Type checking
 - Unit tests

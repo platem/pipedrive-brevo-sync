@@ -1,25 +1,13 @@
 {
-    "$schema": "https://opencode.ai/config.json",
-    "mcp":
-    {
-        "svelte":
-        {
-            "type": "local",
-            "command":
-            [
-                "npx",
-                "-y",
-                "@sveltejs/mcp"
-            ]
-        },
-        "10x-mvp-tracker":
-        {
-        	"type": "local",
-            "command": [
-            	"npx",
-            	"-y",
-            	"@przeprogramowani/10x-mvp-tracker@latest"
-            ]
-        }
-    }
+	"$schema": "https://opencode.ai/config.json",
+	"mcp": {
+		"svelte": {
+			"type": "local",
+			"command": ["npx", "-y", "@sveltejs/mcp"]
+		},
+		"10x-mvp-tracker": {
+			"type": "local",
+			"command": ["npx", "-y", "@przeprogramowani/10x-mvp-tracker@latest"]
+		}
+	}
 }
