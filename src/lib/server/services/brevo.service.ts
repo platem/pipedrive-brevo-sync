@@ -1,4 +1,4 @@
-import { BREVO_API_KEY } from '$env/static/private';
+import { BREVO_API_KEY, BREVO_FOLDER_ID } from '$env/static/private';
 
 const BREVO_BASE_URL = 'https://api.brevo.com/v3';
 
@@ -21,6 +21,10 @@ interface BrevoCreateListResponse {
  * @returns Object containing the new list ID
  */
 export async function createList(name: string): Promise<{ id: number }> {
+	if (!BREVO_FOLDER_ID) {
+		throw new Error('BREVO_FOLDER_ID environment variable is not set');
+	}
+
 	const url = `${BREVO_BASE_URL}/contacts/lists`;
 
 	const response = await fetch(url, {
@@ -31,7 +35,8 @@ export async function createList(name: string): Promise<{ id: number }> {
 			'api-key': BREVO_API_KEY
 		},
 		body: JSON.stringify({
-			name
+			name,
+			folderId: Number(BREVO_FOLDER_ID)
 		})
 	});
 

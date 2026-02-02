@@ -96,7 +96,6 @@ export const actions: Actions = {
 
 						await db.update(filters).set({ brevoListId }).where(eq(filters.id, job.filterId));
 					} else {
-						const filterRecord = selectedFilters.find((f) => f.id === job.filterId);
 						if (!filterRecord || !filterRecord.brevoListId) {
 							throw new Error(`Brak brevo_list_id dla filtra ${job.filterId}`);
 						}
