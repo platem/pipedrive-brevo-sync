@@ -15,6 +15,7 @@ export const load: PageServerLoad = async (event) => {
 
 export const actions: Actions = {
 	login: async (event) => {
+		console.time('totalLogin');
 		const formData = await event.request.formData();
 		const username = formData.get('username');
 		const password = formData.get('password');
@@ -26,27 +27,34 @@ export const actions: Actions = {
 			return fail(400, { message: 'Invalid password' });
 		}
 
+		console.time('dbSelectUser');
 		const results = await db.select().from(table.user).where(eq(table.user.username, username));
+		console.timeEnd('dbSelectUser');
 
 		const existingUser = results.at(0);
 		if (!existingUser) {
 			return fail(400, { message: 'Incorrect username or password' });
 		}
 
+		console.time('argon2Verify');
 		const validPassword = await verify(existingUser.passwordHash, password, {
 			memoryCost: 19456,
 			timeCost: 2,
 			outputLen: 32,
 			parallelism: 1
 		});
+		console.timeEnd('argon2Verify');
 
 		if (!validPassword) {
 			return fail(400, { message: 'Incorrect username or password' });
 		}
 
 		const sessionToken = auth.generateSessionToken();
+		console.time('createSession');
 		const session = await auth.createSession(sessionToken, existingUser.id);
+		console.timeEnd('createSession');
 		auth.setSessionTokenCookie(event, sessionToken, session.expiresAt);
+		console.timeEnd('totalLogin');
 
 		return redirect(302, '/');
 	}
