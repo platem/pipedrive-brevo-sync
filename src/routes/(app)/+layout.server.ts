@@ -26,25 +26,27 @@ export const load: LayoutServerLoad = async ({ locals }) => {
 		// Upsert all Pipedrive filters into local DB
 		// Handle active_flag: true = active, false = soft-deleted
 		console.time('dbUpsertFilters');
-		for (const filter of pipedriveFilters) {
-			const deletedAt = filter.active_flag ? null : sql`(unixepoch())`;
+		db.transaction((tx) => {
+			for (const filter of pipedriveFilters) {
+				const deletedAt = filter.active_flag ? null : sql`(unixepoch())`;
 
-			await db
-				.insert(filters)
-				.values({
-					id: filter.id,
-					name: filter.name,
-					brevoListId: null,
-					deletedAt
-				})
-				.onConflictDoUpdate({
-					target: filters.id,
-					set: {
+				tx.insert(filters)
+					.values({
+						id: filter.id,
 						name: filter.name,
+						brevoListId: null,
 						deletedAt
-					}
-				});
-		}
+					})
+					.onConflictDoUpdate({
+						target: filters.id,
+						set: {
+							name: filter.name,
+							deletedAt
+						}
+					})
+					.run();
+			}
+		});
 		console.timeEnd('dbUpsertFilters');
 
 		// Mark filters that no longer exist in Pipedrive as deleted
