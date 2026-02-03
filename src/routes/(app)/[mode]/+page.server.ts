@@ -22,13 +22,18 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		error(404, 'Nie znaleziono strony');
 	}
 
-	const activeJobs = await db.select().from(syncJobs).where(eq(syncJobs.status, 'processing'));
-	const hasActiveJob = activeJobs.length > 0;
+	try {
+		const activeJobs = await db.select().from(syncJobs).where(eq(syncJobs.status, 'processing'));
+		const hasActiveJob = activeJobs.length > 0;
 
-	return {
-		mode: mode as 'new' | 'overwrite',
-		hasActiveJob
-	};
+		return {
+			mode: mode as 'new' | 'overwrite',
+			hasActiveJob
+		};
+	} catch (err) {
+		console.error('Failed to check for active sync jobs:', err);
+		error(500, 'Błąd bazy danych');
+	}
 };
 
 export const actions: Actions = {
@@ -48,12 +53,23 @@ export const actions: Actions = {
 			return fail(400, { error: 'Nieprawidłowe ID filtrów' });
 		}
 
-		const activeJobs = await db.select().from(syncJobs).where(eq(syncJobs.status, 'processing'));
-		if (activeJobs.length > 0) {
-			return fail(409, { error: 'Synchronizacja w toku. Spróbuj ponownie później.' });
+		try {
+			const activeJobs = await db.select().from(syncJobs).where(eq(syncJobs.status, 'processing'));
+			if (activeJobs.length > 0) {
+				return fail(409, { error: 'Synchronizacja w toku. Spróbuj ponownie później.' });
+			}
+		} catch (err) {
+			console.error('Failed to check for active sync jobs:', err);
+			return fail(500, { error: 'Błąd bazy danych podczas sprawdzania statusu' });
 		}
 
-		const selectedFilters = await db.select().from(filters).where(inArray(filters.id, filterIds));
+		let selectedFilters;
+		try {
+			selectedFilters = await db.select().from(filters).where(inArray(filters.id, filterIds));
+		} catch (err) {
+			console.error('Failed to fetch selected filters from database:', err);
+			return fail(500, { error: 'Błąd bazy danych podczas pobierania filtrów' });
+		}
 
 		const invalidFilters = selectedFilters.filter((filter) => {
 			const hasBrevoListId = filter.brevoListId !== null;
@@ -98,7 +114,12 @@ export const actions: Actions = {
 						const list = await createList(filterRecord.name);
 						brevoListId = list.id;
 
-						await db.update(filters).set({ brevoListId }).where(eq(filters.id, job.filterId));
+						try {
+							await db.update(filters).set({ brevoListId }).where(eq(filters.id, job.filterId));
+						} catch (err) {
+							console.error(`Failed to update filter ${job.filterId} with Brevo list ID:`, err);
+							throw err;
+						}
 					} else {
 						if (!filterRecord || !filterRecord.brevoListId) {
 							throw new Error(`Brak brevo_list_id dla filtra ${job.filterId}`);
@@ -136,28 +157,37 @@ export const actions: Actions = {
 					const result = await importContacts(brevoListId, contacts);
 					totalSent += result.imported;
 
-					await db
-						.update(syncJobs)
-						.set({
-							status: 'completed',
-							completedAt: new Date(),
-							totalFetched: deals.length,
-							totalAdded: result.imported
-						})
-						.where(eq(syncJobs.id, job.id));
+					try {
+						await db
+							.update(syncJobs)
+							.set({
+								status: 'completed',
+								completedAt: new Date(),
+								totalFetched: deals.length,
+								totalAdded: result.imported
+							})
+							.where(eq(syncJobs.id, job.id));
+					} catch (err) {
+						console.error(`Failed to update sync job ${job.id} to completed status:`, err);
+						throw err;
+					}
 				} catch (err) {
 					const errorMessage = err instanceof Error ? err.message : 'Nieznany błąd';
 					console.error(`Sync failed for filter ${job.filterId}:`, err);
 
 					failedFilters.push(job.filterId.toString());
 
-					await db
-						.update(syncJobs)
-						.set({
-							status: 'failed',
-							errorMessage
-						})
-						.where(eq(syncJobs.id, job.id));
+					try {
+						await db
+							.update(syncJobs)
+							.set({
+								status: 'failed',
+								errorMessage
+							})
+							.where(eq(syncJobs.id, job.id));
+					} catch (updateErr) {
+						console.error(`Failed to update sync job ${job.id} to failed status:`, updateErr);
+					}
 				}
 			}
 

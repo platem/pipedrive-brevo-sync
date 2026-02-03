@@ -12,71 +12,70 @@ interface FilterView {
 }
 
 export const load: LayoutServerLoad = async ({ locals }) => {
-	console.time('layoutTotal');
 	if (!locals.user) {
-		console.timeEnd('layoutTotal');
 		return { filters: [] };
 	}
 
 	try {
-		console.time('getFiltersAPI');
 		const pipedriveFilters = await getFilters();
-		console.timeEnd('getFiltersAPI');
 
-		// Upsert all Pipedrive filters into local DB
-		// Handle active_flag: true = active, false = soft-deleted
-		console.time('dbUpsertFilters');
-		db.transaction((tx) => {
-			for (const filter of pipedriveFilters) {
-				const deletedAt = filter.active_flag ? null : sql`(unixepoch())`;
+		try {
+			db.transaction((tx) => {
+				for (const filter of pipedriveFilters) {
+					const deletedAt = filter.active_flag ? null : sql`(unixepoch())`;
 
-				tx.insert(filters)
-					.values({
-						id: filter.id,
-						name: filter.name,
-						brevoListId: null,
-						deletedAt
-					})
-					.onConflictDoUpdate({
-						target: filters.id,
-						set: {
+					tx.insert(filters)
+						.values({
+							id: filter.id,
 							name: filter.name,
+							brevoListId: null,
 							deletedAt
-						}
-					})
-					.run();
-			}
-		});
-		console.timeEnd('dbUpsertFilters');
-
-		// Mark filters that no longer exist in Pipedrive as deleted
-		const existingIds = pipedriveFilters.map((f) => f.id);
-		if (existingIds.length > 0) {
-			console.time('dbUpdateDeleted');
-			await db
-				.update(filters)
-				.set({ deletedAt: sql`(unixepoch())` })
-				.where(notInArray(filters.id, existingIds));
-			console.timeEnd('dbUpdateDeleted');
+						})
+						.onConflictDoUpdate({
+							target: filters.id,
+							set: {
+								name: filter.name,
+								deletedAt
+							}
+						})
+						.run();
+				}
+			});
+		} catch (err) {
+			console.error('Failed to upsert filters to database:', err);
+			throw err;
 		}
 
-		// Return all non-deleted filters from local DB
-		console.time('dbSelectFilters');
-		const syncedFilters = await db
-			.select({
-				id: filters.id,
-				name: filters.name,
-				brevoListId: filters.brevoListId
-			})
-			.from(filters)
-			.where(isNull(filters.deletedAt));
-		console.timeEnd('dbSelectFilters');
+		try {
+			const existingIds = pipedriveFilters.map((f) => f.id);
+			if (existingIds.length > 0) {
+				await db
+					.update(filters)
+					.set({ deletedAt: sql`(unixepoch())` })
+					.where(notInArray(filters.id, existingIds));
+			}
+		} catch (err) {
+			console.error('Failed to mark deleted filters in database:', err);
+			throw err;
+		}
 
-		console.timeEnd('layoutTotal');
+		try {
+			const syncedFilters = await db
+				.select({
+					id: filters.id,
+					name: filters.name,
+					brevoListId: filters.brevoListId
+				})
+				.from(filters)
+				.where(isNull(filters.deletedAt));
 
-		return {
-			filters: syncedFilters as FilterView[]
-		};
+			return {
+				filters: syncedFilters as FilterView[]
+			};
+		} catch (err) {
+			console.error('Failed to select active filters from database:', err);
+			throw err;
+		}
 	} catch (err) {
 		console.error('Failed to fetch filters:', err);
 		if (process.env.CI) {
