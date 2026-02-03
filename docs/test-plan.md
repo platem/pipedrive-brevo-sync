@@ -29,7 +29,7 @@ Focus on **critical user journeys only**:
 ### 3.1 E2E Testing
 
 - **Focus**: Critical user journeys from browser through server to database.
-- **Approach**: Real app runs, but external API calls (Pipedrive, Brevo, Telegram) are intercepted and replaced with fixture data.
+- **Approach**: Real app runs, but external API calls (Pipedrive, Brevo) are intercepted and replaced with fixture data.
 - **Tools**: `Playwright` with built-in `page.route()` for API mocking.
 
 ### 3.2 Fixture Strategy
@@ -84,10 +84,10 @@ Focus on **critical user journeys only**:
 
 ### 4.4 Error Handling (E2E - To Implement)
 
-| ID     | Scenario                        | Expected Result                                       | Priority |
-| :----- | :------------------------------ | :---------------------------------------------------- | :------- |
-| ERR-01 | Pipedrive API error during sync | Job marked failed, Telegram alert sent, user notified | High     |
-| ERR-02 | Brevo API error during import   | User notification shown, job lock released for retry  | High     |
+| ID     | Scenario                        | Expected Result                                      | Priority |
+| :----- | :------------------------------ | :--------------------------------------------------- | :------- |
+| ERR-01 | Pipedrive API error during sync | Job marked failed, user notified                     | High     |
+| ERR-02 | Brevo API error during import   | User notification shown, job lock released for retry | High     |
 
 ## 5. Test Environment
 
@@ -96,7 +96,7 @@ Focus on **critical user journeys only**:
 - **Environment Variables**:
   - `APP_PASSWORD`: Same as production (or test-specific).
   - `TEST_DB_URL`: Temporary SQLite file for test isolation.
-  - No Pipedrive/Brevo/Telegram API keys needed (all mocked).
+  - No Pipedrive/Brevo API keys needed (all mocked).
 
 ## 6. Testing Tools & Setup
 
@@ -144,7 +144,7 @@ E2E tests require a dedicated test user in the database to simulate real authent
 
 1. **Phase 1**: ✅ Auth tests (AUTH-01, AUTH-02, AUTH-03, AUTH-04) - Completed.
 2. **Phase 2**: ✅ Dashboard navigation tests (DASH-01 through DASH-04) - Completed.
-3. **Phase 3**: Create fixture files for Pipedrive/Brevo/Telegram responses.
+3. **Phase 3**: Create fixture files for Pipedrive/Brevo responses.
 4. **Phase 4**: Implement SYNC-01 (Sync New) E2E test with fixtures.
 5. **Phase 5**: Implement SYNC-02 (Overwrite) E2E test with fixtures.
 6. **Phase 6**: Implement SYNC-03 (Job Lock) E2E test.

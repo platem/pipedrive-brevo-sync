@@ -46,11 +46,8 @@ Replace the existing n8n + Airtable + Fillout workflow with a lightweight Svelte
 
 ### Error Handling & Notifications
 
-- Telegram bot notifications for all errors
-- Bot token and chat ID via environment variables
 - Error details: which filter failed, what stage, error message
 - UX: simple spinner while processing, result displayed on completion
-- Telegram used ONLY for error alerts, not completion notifications
 
 ### Async Processing
 
@@ -86,7 +83,7 @@ Replace the existing n8n + Airtable + Fillout workflow with a lightweight Svelte
 2. Submit → show spinner
 3. For each filter: create Brevo list → fetch deals → extract contacts → batch import
 4. On success: mark filter used, store brevo_list_id, show counts
-5. On failure: show error in UI, send Telegram alert
+5. On failure: show error in UI
 
 ### Overwrite Flow
 
@@ -95,11 +92,10 @@ Replace the existing n8n + Airtable + Fillout workflow with a lightweight Svelte
 3. Clear existing Brevo list contacts (or delete/recreate list)
 4. Re-fetch from Pipedrive → batch import
 5. Update job status, show counts
+6. On failure: show error in UI
 
 ## Environment Variables
 
-- `TELEGRAM_BOT_TOKEN` - Telegram bot token
-- `TELEGRAM_CHAT_ID` - Telegram chat ID for alerts
 - `PIPEDRIVE_API_KEY` - Pipedrive API key
 - `BREVO_API_KEY` - Brevo API key
 - `APP_PASSWORD` - Shared password for access
@@ -110,5 +106,4 @@ Replace the existing n8n + Airtable + Fillout workflow with a lightweight Svelte
 - User can sync selected filters to new Brevo lists
 - User can overwrite existing synced filters with fresh data
 - All contacts from Pipedrive appear in Brevo (count verification)
-- Errors trigger Telegram notifications
 - SQLite replaces Airtable completely

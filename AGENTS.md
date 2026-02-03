@@ -4,7 +4,7 @@ This document provides guidelines and commands for agentic coding agents working
 
 ## Project Overview
 
-A SvelteKit application that syncs Pipedrive deal filters with Brevo contact lists, replacing an existing n8n + Airtable + Fillout workflow. The app fetches Pipedrive filters, allows users to create new Brevo lists or overwrite existing ones with filtered deal contacts, and tracks sync jobs in SQLite. Supports Telegram error notifications and single-password authentication.
+A SvelteKit application that syncs Pipedrive deal filters with Brevo contact lists, replacing an existing n8n + Airtable + Fillout workflow. The app fetches Pipedrive filters, allows users to create new Brevo lists or overwrite existing ones with filtered deal contacts, and tracks sync jobs in SQLite. Supports single-password authentication.
 
 **Tech Stack:**
 

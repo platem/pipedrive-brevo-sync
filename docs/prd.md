@@ -2,7 +2,7 @@
 
 ## Product Overview
 
-The Pipedrive-Brevo Sync Bridge is a lightweight, single-tenant web application designed to synchronize contact data from Pipedrive to Brevo. It replaces a complex multi-tool workflow (n8n, Airtable, Fillout) with a bespoke, reliable integration hosted on a VPS. The application enables sales staff to sync "Deals" filtered in Pipedrive into static "Contact Lists" in Brevo for email marketing campaigns. It handles two primary use cases: creating new lists from unsynced filters and overwriting existing lists with fresh data. The system emphasizes simplicity, data consistency, and clear error reporting via Telegram.
+The Pipedrive-Brevo Sync Bridge is a lightweight, single-tenant web application designed to synchronize contact data from Pipedrive to Brevo. It replaces a complex multi-tool workflow (n8n, Airtable, Fillout) with a bespoke, reliable integration hosted on a VPS. The application enables sales staff to sync "Deals" filtered in Pipedrive into static "Contact Lists" in Brevo for email marketing campaigns. It handles two primary use cases: creating new lists from unsynced filters and overwriting existing lists with fresh data. The system emphasizes simplicity, data consistency, and clear error reporting.
 
 ## User Problem
 
@@ -109,16 +109,15 @@ Display the results of the operation.
 
 ### Error Handling & Monitoring
 
-#### REQ-010: Error Handling & Telegram Alerts
+#### REQ-010: Error Handling
 
 Manage failures gracefully.
 
 - Wrap API calls in Try/Catch blocks.
 - On failure:
   1.  Log the error to SQLite `sync_jobs` (status: `failed`, message: error details).
-  2.  Send a message to the Telegram Chat ID defined in env vars. Message: "Sync Failed for Filter {Name}. Error: {Details}".
-  3.  Show a user-friendly error in the UI ("Sync failed. The admin has been notified.").
-  4.  Reset the "Job Lock" (REQ-010) to allow retries.
+  2.  Show a user-friendly error in the UI ("Sync failed.").
+  3.  Reset the "Job Lock" (REQ-010) to allow retries.
 
 ## Product Boundaries
 

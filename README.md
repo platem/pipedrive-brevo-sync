@@ -40,7 +40,6 @@ See [docs/architecture.md](docs/architecture.md) for detailed architecture speci
 - Bun installed ([installation guide](https://bun.sh/docs/installation))
 - Pipedrive account with API access
 - Brevo account with API access
-- (Optional) Telegram bot for error notifications
 
 ## Setup
 
@@ -163,7 +162,7 @@ bun run build
    - Transform data (extract email, name, phone, ID)
    - Import to Brevo (batched, 50 contacts per request)
 5. **Job Tracking**: All sync operations logged in SQLite with status and metrics
-6. **Error Handling**: Failed syncs trigger Telegram alerts and UI notifications
+6. **Error Handling**: Failed syncs trigger UI notifications
 
 ## Documentation
 
