@@ -1,4 +1,5 @@
 import { error, fail } from '@sveltejs/kit';
+import { redirect } from '@sveltejs/kit';
 import { db } from '$lib/server/db';
 import { filters, syncJobs } from '$lib/server/db/schema';
 import { eq, inArray } from 'drizzle-orm';
@@ -11,7 +12,10 @@ import {
 } from '$lib/server/services/brevo.service';
 import type { Actions, PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ params }) => {
+export const load: PageServerLoad = async ({ params, locals }) => {
+	if (!locals.user) {
+		return redirect(302, '/login');
+	}
 	const mode = params.mode;
 
 	if (mode !== 'new' && mode !== 'overwrite') {

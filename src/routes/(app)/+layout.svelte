@@ -18,7 +18,7 @@
 	}
 </script>
 
-<div class="flex min-h-screen flex-col">
+<div class="flex h-screen flex-col">
 	<!-- Minimal Header -->
 	<header class="sticky top-0 z-50 border-b bg-background">
 		<div class="container mx-auto flex h-16 items-center justify-between px-4">
@@ -53,7 +53,13 @@
 	</header>
 
 	<!-- Main Content Area -->
-	<main class="container mx-auto flex-1 px-4 py-8">
+	<main
+		class={{
+			'container mx-auto min-h-0 px-4 py-8': true,
+			'overflow-y-auto': isModeRoute,
+			'flex-1': isModeRoute
+		}}
+	>
 		{@render children()}
 	</main>
 </div>

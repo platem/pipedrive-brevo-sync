@@ -92,7 +92,7 @@
 					</div>
 				{:else}
 					<!-- Scrollable filter list -->
-					<div class="max-h-96 overflow-y-auto rounded-md border">
+					<div class="max-h-96 overflow-y-auto overscroll-y-contain rounded-md border">
 						{#each eligibleFilters as filter (filter.id)}
 							<div class="flex items-center space-x-3 border-b px-4 py-3 last:border-b-0">
 								<Checkbox
