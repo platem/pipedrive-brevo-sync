@@ -9,7 +9,6 @@ A lightweight, single-tenant web application that synchronizes contact data from
 - **Job Tracking**: SQLite-based persistence of sync operations with detailed status
 - **Concurrent Job Protection**: Built-in locking mechanism prevents overlapping syncs
 - **Session-based Authentication**: Secure single-password access control
-- **Error Monitoring**: Telegram notifications for sync failures (optional)
 - **Rate Limit Handling**: Automatic throttling for API compliance
 - **Batch Processing**: Optimized pagination and batching for large datasets
 
@@ -175,14 +174,32 @@ bun run build
 
 ## CI/CD
 
-GitHub Actions workflow automatically runs on every push to `main`:
+GitHub Actions workflows automatically run on every push to `main`:
+
+**CI Workflow** ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)):
 
 - Dependency installation
 - Type checking
 - Unit tests
 - Production build verification
 
-See [.github/workflows/ci.yml](.github/workflows/ci.yml)
+**Deploy Workflow** ([`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)):
+
+- Type checking
+- Production build
+- Automatic deployment to VPS via SSH
+- PM2 process restart
+
+### Required Secrets for VPS Deployment
+
+Configure the following secrets in GitHub repository settings:
+
+| Secret Name   | Description                        |
+| ------------- | ---------------------------------- |
+| `VPS_HOST`    | VPS IP address or hostname         |
+| `VPS_USER`    | SSH username                       |
+| `VPS_SSH_KEY` | Private SSH key for authentication |
+| `VPS_PORT`    | SSH port                           |
 
 ## License
 
