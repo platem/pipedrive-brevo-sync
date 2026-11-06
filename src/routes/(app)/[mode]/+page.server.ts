@@ -10,9 +10,31 @@ import {
 	importContacts,
 	type BrevoContact
 } from '$lib/server/services/brevo.service';
+import {
+	elapsedMs,
+	logSync,
+	sanitizeMessage,
+	SyncFailure,
+	type SyncLogContext,
+	type SyncMode
+} from '$lib/server/services/sync-log';
 import type { Actions, PageServerLoad } from './$types';
 
+function actionFailureContext(mode: SyncMode, filterIds: number[]): SyncLogContext {
+	return {
+		mode,
+		filterId: filterIds.length === 1 ? filterIds[0] : null,
+		jobId: null
+	};
+}
+
+function safeFailureMessage(err: unknown, stage: string): string {
+	return err instanceof SyncFailure ? sanitizeMessage(err.message) : `Sync failed during ${stage}`;
+}
+
 export const load: PageServerLoad = async ({ params, locals }) => {
+	const loadStartedAt = performance.now();
+
 	if (!locals.user) {
 		return redirect(302, '/login');
 	}
@@ -30,14 +52,22 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 			mode: mode as 'new' | 'overwrite',
 			hasActiveJob
 		};
-	} catch (err) {
-		console.error('Failed to check for active sync jobs:', err);
+	} catch {
+		logSync({
+			level: 'error',
+			event: 'sync.load_failed',
+			stage: 'db_check',
+			durationMs: elapsedMs(loadStartedAt),
+			mode,
+			message: 'Database check failed'
+		});
 		error(500, 'Błąd bazy danych');
 	}
 };
 
 export const actions: Actions = {
 	sync: async ({ request, params }) => {
+		const actionStartedAt = performance.now();
 		const mode = params.mode as 'new' | 'overwrite';
 
 		const formData = await request.formData();
@@ -58,16 +88,30 @@ export const actions: Actions = {
 			if (activeJobs.length > 0) {
 				return fail(409, { error: 'Synchronizacja w toku. Spróbuj ponownie później.' });
 			}
-		} catch (err) {
-			console.error('Failed to check for active sync jobs:', err);
+		} catch {
+			logSync({
+				...actionFailureContext(mode, filterIds),
+				level: 'error',
+				event: 'sync.rejected',
+				stage: 'db_check',
+				durationMs: elapsedMs(actionStartedAt),
+				message: 'Database check failed'
+			});
 			return fail(500, { error: 'Błąd bazy danych podczas sprawdzania statusu' });
 		}
 
 		let selectedFilters;
 		try {
 			selectedFilters = await db.select().from(filters).where(inArray(filters.id, filterIds));
-		} catch (err) {
-			console.error('Failed to fetch selected filters from database:', err);
+		} catch {
+			logSync({
+				...actionFailureContext(mode, filterIds),
+				level: 'error',
+				event: 'sync.rejected',
+				stage: 'db_filters',
+				durationMs: elapsedMs(actionStartedAt),
+				message: 'Database filter lookup failed'
+			});
 			return fail(500, { error: 'Błąd bazy danych podczas pobierania filtrów' });
 		}
 
@@ -103,33 +147,60 @@ export const actions: Actions = {
 			const failedFilters: string[] = [];
 
 			for (const job of jobs) {
+				const filterStartedAt = performance.now();
+				const filterRecord = selectedFilters.find((f) => f.id === job.filterId);
+				const context: SyncLogContext = {
+					filterId: job.filterId,
+					jobId: job.id,
+					mode,
+					brevoListId: filterRecord?.brevoListId ?? undefined
+				};
+				let stage = 'prepare';
+
+				logSync({
+					...context,
+					event: 'sync.start',
+					stage: 'job',
+					durationMs: elapsedMs(filterStartedAt)
+				});
+
 				try {
 					let brevoListId: number;
-					const filterRecord = selectedFilters.find((f) => f.id === job.filterId);
 					if (!filterRecord) {
-						throw new Error(`Nie znaleziono filtra ${job.filterId}`);
+						throw new SyncFailure(`Nie znaleziono filtra ${job.filterId}`);
 					}
 
 					if (mode === 'new') {
-						const list = await createList(filterRecord.name);
+						stage = 'create_list';
+						const list = await createList(filterRecord.name, context);
 						brevoListId = list.id;
+						context.brevoListId = brevoListId;
 
-						try {
-							await db.update(filters).set({ brevoListId }).where(eq(filters.id, job.filterId));
-						} catch (err) {
-							console.error(`Failed to update filter ${job.filterId} with Brevo list ID:`, err);
-							throw err;
-						}
+						stage = 'persist_list_id';
+						await db.update(filters).set({ brevoListId }).where(eq(filters.id, job.filterId));
 					} else {
 						if (!filterRecord || !filterRecord.brevoListId) {
-							throw new Error(`Brak brevo_list_id dla filtra ${job.filterId}`);
+							throw new SyncFailure(`Brak brevo_list_id dla filtra ${job.filterId}`);
 						}
 						brevoListId = filterRecord.brevoListId;
-						await emptyList(brevoListId);
+						stage = 'clear_list';
+						await emptyList(brevoListId, context);
 					}
 
+					stage = 'pipedrive_deals';
+					const dealsStartedAt = performance.now();
 					const deals = await getDealsByFilter(job.filterId);
 
+					logSync({
+						...context,
+						event: 'pipedrive.deals',
+						stage: 'pipedrive',
+						durationMs: elapsedMs(dealsStartedAt),
+						deals: deals.length
+					});
+
+					stage = 'pipedrive_persons';
+					const personsStartedAt = performance.now();
 					const personIds = [...new Set(deals.map((d) => d.person_id).filter((id) => id !== null))];
 					const persons = await getPersons(personIds as number[]);
 
@@ -154,26 +225,50 @@ export const actions: Actions = {
 						});
 					}
 
-					const result = await importContacts(brevoListId, contacts);
+					logSync({
+						...context,
+						event: 'pipedrive.contacts',
+						stage: 'pipedrive',
+						durationMs: elapsedMs(personsStartedAt),
+						persons: persons.length,
+						contacts: contacts.length
+					});
+
+					stage = 'import';
+					const result = await importContacts(brevoListId, contacts, context);
 					totalSent += result.imported;
 
-					try {
-						await db
-							.update(syncJobs)
-							.set({
-								status: 'completed',
-								completedAt: new Date(),
-								totalFetched: deals.length,
-								totalAdded: result.imported
-							})
-							.where(eq(syncJobs.id, job.id));
-					} catch (err) {
-						console.error(`Failed to update sync job ${job.id} to completed status:`, err);
-						throw err;
-					}
+					stage = 'persist';
+					await db
+						.update(syncJobs)
+						.set({
+							status: 'completed',
+							completedAt: new Date(),
+							totalFetched: deals.length,
+							totalAdded: result.imported
+						})
+						.where(eq(syncJobs.id, job.id));
+
+					logSync({
+						...context,
+						event: 'sync.finished',
+						stage: 'job',
+						durationMs: elapsedMs(filterStartedAt),
+						status: 'completed',
+						totalFetched: deals.length,
+						submittedContacts: result.imported
+					});
 				} catch (err) {
-					const errorMessage = err instanceof Error ? err.message : 'Nieznany błąd';
-					console.error(`Sync failed for filter ${job.filterId}:`, err);
+					const errorMessage = safeFailureMessage(err, stage);
+					logSync({
+						...context,
+						level: 'error',
+						event: 'sync.failed',
+						stage,
+						durationMs: elapsedMs(filterStartedAt),
+						status: 'failed',
+						message: errorMessage
+					});
 
 					failedFilters.push(job.filterId.toString());
 
@@ -185,8 +280,15 @@ export const actions: Actions = {
 								errorMessage
 							})
 							.where(eq(syncJobs.id, job.id));
-					} catch (updateErr) {
-						console.error(`Failed to update sync job ${job.id} to failed status:`, updateErr);
+					} catch {
+						logSync({
+							...context,
+							level: 'error',
+							event: 'sync.persist_failed',
+							stage: 'persist_failed',
+							durationMs: elapsedMs(filterStartedAt),
+							message: 'Failed to record failed job status'
+						});
 					}
 				}
 			}
@@ -196,8 +298,15 @@ export const actions: Actions = {
 				totalSent,
 				failedFilters
 			};
-		} catch (err) {
-			console.error('Failed to create sync jobs:', err);
+		} catch {
+			logSync({
+				...actionFailureContext(mode, filterIds),
+				level: 'error',
+				event: 'sync.rejected',
+				stage: 'job_creation',
+				durationMs: elapsedMs(actionStartedAt),
+				message: 'Database job creation failed'
+			});
 			return fail(500, { error: 'Błąd bazy danych podczas tworzenia zadań' });
 		}
 	}
