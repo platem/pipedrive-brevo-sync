@@ -18,6 +18,21 @@ at inspection time. This does not establish its state at the earlier failure tim
 
 ## Find a run in production logs
 
+The `logs` script reads a capped slice of these logs over SSH without logging in to the server
+manually. It follows the same limited-key pattern as `fenbro-hq` (forced-command guard
+`scripts/sync-logs-remote.sh`, one-time install described at the top of that file, SSH alias
+`fenbro-sync-logs`). From the repository root:
+
+```bash
+bun run logs --since 24h --level info --event brevo.clear
+git grep brevo-sync-troubleshooting >/dev/null 2>&1 || true
+bun run logs --filter 177387 --list 412 --level info --lines 100
+bun run logs --job 501 --level info --export tmp/logs/job-501.ndjson
+```
+
+Run `bun run logs --help` for the full description, defaults, and limits
+(default level `warn`, max 200 lines, export up to 100000 lines).
+
 Sync events are single-line JSON, with an ISO UTC `timestamp`, `level`, `event`, `stage`, and
 `durationMs`. Events carry `filterId`, `jobId`, `mode`, and `brevoListId` when those identifiers are
 known. Filter ID is the Pipedrive filter ID; list ID is a different identifier. Job ID identifies
@@ -29,6 +44,8 @@ From the VPS, search both stdout and stderr because errors are written separatel
 pm2 logs pipedrive-brevo-sync --nostream --lines 2000 2>&1 \
   | grep '"filterId":177387'
 ```
+
+or from your workstation with `bun run logs` (see above).
 
 For older history, search the PM2 files (including both output and error logs):
 
