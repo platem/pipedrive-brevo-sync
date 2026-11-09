@@ -162,7 +162,7 @@ set +f
 log_files=()
 while IFS= read -r candidate; do
 	log_files+=("$LOG_DIR/$candidate")
-done < <(ls -1 "$LOG_DIR" 2>/dev/null | grep -E "^$APP-(out|error)-[0-9]+\.log$" | sort)
+done < <(ls -1 "$LOG_DIR" 2>/dev/null | grep -E "^$APP-(out|error)(-?[0-9]+|__[0-9_-]+)?\.log$" | sort)
 if ((${#log_files[@]} == 0)); then
 	exit 0
 fi
