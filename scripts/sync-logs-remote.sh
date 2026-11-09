@@ -46,8 +46,7 @@ for token in ${SSH_ORIGINAL_COMMAND-}; do
 	esac
 done
 
-# Reject leading zeros and more than twelve digits before Bash arithmetic or
-# awk (integer-safe grep) reads them.
+# Reject leading zeros and absurd digit counts before Bash arithmetic reads them.
 case "$lines" in
 '' | *[!0-9]* | 0* | ???????????*) reject ;;
 esac
@@ -62,8 +61,9 @@ adjusted_lines=$lines
 
 for value in "$filter" "$job" "$list"; do
 	case "$value" in
-	'' | [1-9]*([0-9])) ;;
-	*) reject ;;
+	'') ;;
+	*[!0-9]*) reject ;;
+	0*) reject ;;
 	esac
 done
 
@@ -104,74 +104,57 @@ iso_relative() {
 	fi
 }
 
+resolve_boundary() {
+	case "$1" in
+	15m) iso_relative '15 minutes ago' -15M ;;
+	1h) iso_relative '1 hour ago' -1H ;;
+	6h) iso_relative '6 hours ago' -6H ;;
+	24h) iso_relative '1 day ago' -1d ;;
+	7d) iso_relative '7 days ago' -7d ;;
+	*) iso_period "$1" ;;
+	esac
+}
+
 if [[ -n "$since" ]]; then
-	case "$since" in
-	15m) since_boundary="$(iso_relative '15 minutes ago' -15M)" ;;
-	1h) since_boundary="$(iso_relative '1 hour ago' -1H)" ;;
-	6h) since_boundary="$(iso_relative '6 hours ago' -6H)" ;;
-	24h) since_boundary="$(iso_relative '1 day ago' -1d)" ;;
-	7d) since_boundary="$(iso_relative '7 days ago' -7d)" ;;
-	*) since_boundary="$(iso_period "$since")" ;;
-	esac || reject
+	since_boundary="$(resolve_boundary "$since")" || reject
 	[[ -n "$since_boundary" ]] || reject
 fi
 if [[ -n "$until" ]]; then
-	case "$until" in
-	15m) until_boundary="$(iso_relative '15 minutes ago' -15M)" ;;
-	1h) until_boundary="$(iso_relative '1 hour ago' -1H)" ;;
-	6h) until_boundary="$(iso_relative '6 hours ago' -6H)" ;;
-	24h) until_boundary="$(iso_relative '1 day ago' -1d)" ;;
-	7d) until_boundary="$(iso_relative '7 days ago' -7d)" ;;
-	*) until_boundary="$(iso_period "$until")" ;;
-	esac || reject
+	until_boundary="$(resolve_boundary "$until")" || reject
 	[[ -n "$until_boundary" ]] || reject
 fi
 
-# All filters combine with AND inside one awk pass. Values checked above are
-# embedded as fixed-string checks, so no shell, grep, or awk metacharacters
-# can pass through.
-awk_program=$'
+# All filters combine with AND in one awk pass. Option values are passed with
+# -v, so they are data: no shell, grep, or awk metacharacters can take effect.
+awk_program='
+function has_id(line, key, value) {
+	if (value == "") return 1;
+	needle = "\"" key "\":" value;
+	pos = index(line, needle);
+	if (pos == 0) return 0;
+	next_char = substr(line, pos + length(needle), 1);
+	return (next_char == "," || next_char == "}");
+}
 {
-	p = index($0, "timestamp\\":");
+	p = index($0, "timestamp\":\"");
 	if (p == 0) next;
 	ts = substr($0, p + 12, 19);
-	if (length(ts) < 19) next;'
-if [[ -n "$since_boundary" ]]; then
-	awk_program+=" if (ts < \"$since_boundary\") next;"
-fi
-if [[ -n "$until_boundary" ]]; then
-	awk_program+=" if (ts >= \"$until_boundary\") next;"
-fi
-awk_program+='
-	lt = index($0, "level\":\"");
+	if (length(ts) < 19) next;
+	if (since != "" && ts < since) next;
+	if (until != "" && ts >= until) next;
+
 	lvl = -1;
-	if (lt > 0) {
-		name = substr($0, lt + 8, 6);
-		if (substr(name, 1, 5) == "error") lvl = 2;
-		else if (substr(name, 1, 4) == "warn") lvl = 1;
-		else if (substr(name, 1, 4) == "info") lvl = 0;
-	}
-	if (lvl < '"$level_min"') next;'
-if [[ -n "$event" ]]; then
-	awk_program+=' if (index($0, "event\":\"'"$event"'\"") == 0) next;'
-fi
-for pair in "filterId$filter" "jobId$job" "brevoListId$list"; do
-	key="${pair%[0-9]*}"
-	: # unused scaffold; real checks added below
-done
-if [[ -n "$filter" ]]; then
-	awk_program+=' if (index($0, "filterId\":'"$filter"',") == 0 && index($0, "filterId\":'"$filter'"}) == 0) next;'
-fi
-if [[ -n "$job" ]]; then
-	awk_program+=' if (index($0, "jobId\":'"$job"',") == 0 && index($0, "jobId\":'"$job'"}) == 0) next;'
-fi
-if [[ -n "$list" ]]; then
-	awk_program+=' if (index($0, "brevoListId\":'"$list"',") == 0 && index($0, "brevoListId\":'"$list'"}) == 0) next;'
-fi
-if [[ -n "$mode" ]]; then
-	awk_program+=' if (index($0, "mode\":\"'"$mode"'\"") == 0) next;'
-fi
-awk_program+='
+	if (index($0, "level\":\"error\"") > 0) lvl = 2;
+	else if (index($0, "level\":\"warn\"") > 0) lvl = 1;
+	else if (index($0, "level\":\"info\"") > 0) lvl = 0;
+	if (lvl < level_min) next;
+
+	if (event != "" && index($0, "event\":\"" event "\"") == 0) next;
+	if (mode != "" && index($0, "mode\":\"" mode "\"") == 0) next;
+	if (!has_id($0, "filterId", filter)) next;
+	if (!has_id($0, "jobId", job)) next;
+	if (!has_id($0, "brevoListId", list)) next;
+
 	print ts "\t" $0
 }'
 
@@ -184,9 +167,14 @@ if ((${#log_files[@]} == 0)); then
 	exit 0
 fi
 
-cat "${log_files[@]}" \
-	| awk "$awk_program" \
-	| LC_ALL=C sort \
-	| tail -n "$adjusted_lines" \
-	| cut -f2-
+cat "${log_files[@]}" | awk \
+	-v level_min="$level_min" \
+	-v since="$since_boundary" \
+	-v until="$until_boundary" \
+	-v event="$event" \
+	-v mode="$mode" \
+	-v filter="$filter" \
+	-v job="$job" \
+	-v list="$list" \
+	"$awk_program" | LC_ALL=C sort | tail -n "$adjusted_lines" | cut -f2-
 exit 0
