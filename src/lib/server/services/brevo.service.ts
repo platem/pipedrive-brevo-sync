@@ -3,6 +3,8 @@ import { elapsedMs, logSync, sanitizeMessage, SyncFailure, type SyncLogContext }
 
 const BREVO_BASE_URL = 'https://api.brevo.com/v3';
 const OBSERVED_EMPTY_REMOVAL_MESSAGE = 'Contacts already removed from list and/or does not exist';
+// Brevo documents a 10 MB JSON body limit and recommends staying under ~8 MB.
+const MAX_IMPORT_BODY_BYTES = 8 * 1024 * 1024;
 
 interface BrevoFailure {
 	status: number;
@@ -294,9 +296,13 @@ export async function emptyList(listId: number, context: SyncLogContext = {}): P
 
 /**
  * Import contacts to a Brevo list
+ *
+ * One import request carries the whole contact set so Brevo creates a single
+ * background process per sync instead of one per 50 contacts. The request body
+ * is only split when it would exceed the documented 10 MB JSON limit.
  * @param listId - ID of the list to import contacts into
  * @param contacts - Array of contacts to import
- * @returns Object containing the total number of contacts imported
+ * @returns Object containing the total number of contacts submitted
  */
 export async function importContacts(
 	listId: number,
@@ -308,19 +314,18 @@ export async function importContacts(
 	}
 
 	const listContext = { ...context, brevoListId: listId };
-	const BATCH_SIZE = 50;
+	const payload = contacts.map((contact) => ({
+		email: contact.email,
+		attributes: contact.attributes || {}
+	}));
+
+	const chunks = splitByPayloadSize(payload, MAX_IMPORT_BODY_BYTES);
 	let totalImported = 0;
 
-	// Process contacts in batches of 50
-	for (let i = 0; i < contacts.length; i += BATCH_SIZE) {
-		const batch = contacts.slice(i, i + BATCH_SIZE);
-		const batchStartedAt = performance.now();
-
+	for (const chunk of chunks) {
+		const startedAt = performance.now();
 		const response = await brevoFetch('POST', '/contacts/import', listContext, {
-			jsonBody: batch.map((contact) => ({
-				email: contact.email,
-				attributes: contact.attributes || {}
-			})),
+			jsonBody: chunk,
 			listIds: [listId],
 			updateExistingContacts: true,
 			disableNotification: true
@@ -328,20 +333,20 @@ export async function importContacts(
 
 		if (!response.ok) {
 			const failure = await readFailure(response);
-			throw new SyncFailure(`Failed to import contacts batch: ${failureSummary(failure)}`);
+			throw new SyncFailure(`Failed to import contacts: ${failureSummary(failure)}`);
 		}
 
-		// Brevo returns a processId for async processing, we count the batch as submitted
+		// Brevo processes the import asynchronously; this counts what was submitted.
 		const processId = readProcessId(await readJson(response));
-		totalImported += batch.length;
+		totalImported += chunk.length;
 
 		logSync({
 			...listContext,
 			event: 'brevo.import',
 			stage: 'brevo',
-			durationMs: elapsedMs(batchStartedAt),
-			batch: i / BATCH_SIZE + 1,
-			batchSize: batch.length,
+			durationMs: elapsedMs(startedAt),
+			contacts: chunk.length,
+			chunks: chunks.length,
 			submittedTotal: totalImported,
 			processId,
 			outcome: 'submitted'
@@ -349,4 +354,32 @@ export async function importContacts(
 	}
 
 	return { imported: totalImported };
+}
+
+/** Split contacts into the fewest chunks whose JSON stays under the API body limit. */
+function splitByPayloadSize<T>(items: T[], maxBytes: number): T[][] {
+	if (Buffer.byteLength(JSON.stringify(items)) <= maxBytes) {
+		return [items];
+	}
+
+	const chunks: T[][] = [];
+	let current: T[] = [];
+	let currentBytes = 2;
+
+	for (const item of items) {
+		const itemBytes = Buffer.byteLength(JSON.stringify(item)) + 1;
+		if (current.length > 0 && currentBytes + itemBytes > maxBytes) {
+			chunks.push(current);
+			current = [];
+			currentBytes = 2;
+		}
+		current.push(item);
+		currentBytes += itemBytes;
+	}
+
+	if (current.length > 0) {
+		chunks.push(current);
+	}
+
+	return chunks;
 }

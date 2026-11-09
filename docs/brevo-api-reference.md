@@ -33,7 +33,8 @@ and all JSON. Base URL: `https://api.brevo.com/v3` (`brevo.service.ts:3`).
 
 Notes on the map:
 
-- Batches are 50 contacts (`BATCH_SIZE = 50`, `:95`), sent sequentially in a `for` loop (`:99-132`).
+- One import request carries the whole contact set (split only if the JSON body would exceed
+  Brevo's 10 MB limit, ~8 MB used as the threshold).
 - If `contacts.length === 0`, `importContacts` returns `{imported: 0}` **without any HTTP call**
   (`:91-93`).
 - There is no timeout, abort signal, retry, backoff, or `429` handling anywhere in the service

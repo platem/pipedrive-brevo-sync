@@ -66,7 +66,7 @@ filter IDs as plain numbers, which can also appear in unrelated fields.
 - The last successful stage and the failing stage, including request method/path, HTTP status,
   diagnostic API code/message, or network failure.
 - The empty-list skip/recheck decision and contact counts.
-- For imports: batch number, submitted count, and returned Brevo `processId`. For removal: returned
+- For imports: submitted count, chunk count when the body exceeded the API limit, and returned Brevo `processId`. For removal: returned
   `processId` when present.
 - The corresponding `sync_jobs` row and earlier attempts for the same filter.
 
